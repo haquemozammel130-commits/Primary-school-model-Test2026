@@ -1,0 +1,340 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized administrator record for the quiz competition.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Verified email address of the administrator."
+        },
+        "addedBy": {
+          "type": "string",
+          "description": "UID of the administrator who added this entry."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin entry was created (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": ["email", "addedBy", "createdAt"]
+    },
+    "CompetitionConfig": {
+      "title": "CompetitionConfig",
+      "description": "Global competition state controlled exclusively by admins.",
+      "type": "object",
+      "properties": {
+        "activeModelNumber": {
+          "type": "integer",
+          "description": "Currently active model test number from 1 to 20."
+        },
+        "competitionOpen": {
+          "type": "boolean",
+          "description": "Whether the quiz competition is currently ON (true) or OFF (false)."
+        },
+        "roundNumber": {
+          "type": "integer",
+          "description": "Current competition round counter starting at 1."
+        },
+        "examTitle": {
+          "type": "string",
+          "description": "Competition exam title displayed to examinees."
+        },
+        "notice": {
+          "type": "string",
+          "description": "Optional notice from admin to examinees."
+        },
+        "resultsPublished": {
+          "type": "boolean",
+          "description": "Whether a published result sheet is live for examinees."
+        },
+        "publishedModelNumber": {
+          "type": "integer",
+          "description": "Model number of the latest published result sheet (0 if none)."
+        },
+        "publishedRoundNumber": {
+          "type": "integer",
+          "description": "Round number of the latest published result sheet (0 if none)."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID of admin who last updated the configuration."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial config creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest config update."
+        }
+      },
+      "required": [
+        "activeModelNumber",
+        "competitionOpen",
+        "roundNumber",
+        "examTitle",
+        "notice",
+        "resultsPublished",
+        "publishedModelNumber",
+        "publishedRoundNumber",
+        "updatedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "QuizSubmission": {
+      "title": "QuizSubmission",
+      "description": "A user's 100-MCQ answer sheet submission for a competition round.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the examinee."
+        },
+        "participantName": {
+          "type": "string",
+          "description": "Full name of the examinee."
+        },
+        "schoolName": {
+          "type": "string",
+          "description": "Primary school name of the examinee."
+        },
+        "rollNumber": {
+          "type": "string",
+          "description": "Examinee roll or registration ID."
+        },
+        "modelNumber": {
+          "type": "integer",
+          "description": "Model test number (1 to 20)."
+        },
+        "roundNumber": {
+          "type": "integer",
+          "description": "Competition round number."
+        },
+        "answers": {
+          "type": "array",
+          "description": "List of exactly 100 integers (-1 for unanswered, 0..3 for selected option)."
+        },
+        "score": {
+          "type": "integer",
+          "description": "Total marks obtained out of 100."
+        },
+        "correctCount": {
+          "type": "integer",
+          "description": "Count of correct answers (0..100)."
+        },
+        "wrongCount": {
+          "type": "integer",
+          "description": "Count of wrong answers (0..100)."
+        },
+        "unansweredCount": {
+          "type": "integer",
+          "description": "Count of unanswered questions (0..100)."
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "description": "Time taken by examinee in seconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of submission update."
+        }
+      },
+      "required": [
+        "userId",
+        "participantName",
+        "schoolName",
+        "rollNumber",
+        "modelNumber",
+        "roundNumber",
+        "answers",
+        "score",
+        "correctCount",
+        "wrongCount",
+        "unansweredCount",
+        "durationSeconds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PublishedSheet": {
+      "title": "PublishedSheet",
+      "description": "Published result sheet summary metadata created by Admin.",
+      "type": "object",
+      "properties": {
+        "modelNumber": {
+          "type": "integer",
+          "description": "Model number (1 to 20)."
+        },
+        "roundNumber": {
+          "type": "integer",
+          "description": "Round number."
+        },
+        "examTitle": {
+          "type": "string",
+          "description": "Exam title for the published result sheet."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Publication visibility flag."
+        },
+        "totalParticipants": {
+          "type": "integer",
+          "description": "Total participants included in the sheet."
+        },
+        "highestScore": {
+          "type": "integer",
+          "description": "Highest score achieved out of 100."
+        },
+        "averageScore": {
+          "type": "number",
+          "description": "Average score across participants."
+        },
+        "publishedBy": {
+          "type": "string",
+          "description": "Admin UID who published the sheet."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of publication."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update."
+        }
+      },
+      "required": [
+        "modelNumber",
+        "roundNumber",
+        "examTitle",
+        "published",
+        "totalParticipants",
+        "highestScore",
+        "averageScore",
+        "publishedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PublishedEntry": {
+      "title": "PublishedEntry",
+      "description": "A ranked participant entry inside a published result sheet (no PII email/phone).",
+      "type": "object",
+      "properties": {
+        "sheetId": {
+          "type": "string",
+          "description": "Parent sheet ID (e.g., m1_r1)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Participant UID."
+        },
+        "rank": {
+          "type": "integer",
+          "description": "Merit rank starting from 1."
+        },
+        "participantName": {
+          "type": "string",
+          "description": "Participant display name."
+        },
+        "schoolName": {
+          "type": "string",
+          "description": "Participant school name."
+        },
+        "rollNumber": {
+          "type": "string",
+          "description": "Participant roll number."
+        },
+        "modelNumber": {
+          "type": "integer",
+          "description": "Model number (1 to 20)."
+        },
+        "roundNumber": {
+          "type": "integer",
+          "description": "Round number."
+        },
+        "score": {
+          "type": "integer",
+          "description": "Score out of 100."
+        },
+        "correctCount": {
+          "type": "integer",
+          "description": "Correct answers out of 100."
+        },
+        "wrongCount": {
+          "type": "integer",
+          "description": "Wrong answers out of 100."
+        },
+        "unansweredCount": {
+          "type": "integer",
+          "description": "Unanswered questions out of 100."
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "description": "Time taken in seconds."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Mirrored publication visibility flag for secure list queries."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when entry was published."
+        }
+      },
+      "required": [
+        "sheetId",
+        "userId",
+        "rank",
+        "participantName",
+        "schoolName",
+        "rollNumber",
+        "modelNumber",
+        "roundNumber",
+        "score",
+        "correctCount",
+        "wrongCount",
+        "unansweredCount",
+        "durationSeconds",
+        "published",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin access registry."
+    },
+    "/competition_config/{configId}": {
+      "schema": { "$ref": "#/entities/CompetitionConfig" },
+      "description": "Global competition configuration document (id: current)."
+    },
+    "/submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/QuizSubmission" },
+      "description": "Examinee 100-MCQ submissions isolated per userId and readable by admins."
+    },
+    "/published_sheets/{sheetId}": {
+      "schema": { "$ref": "#/entities/PublishedSheet" },
+      "description": "Admin-published result sheet summaries."
+    },
+    "/published_sheets/{sheetId}/entries/{entryId}": {
+      "schema": { "$ref": "#/entities/PublishedEntry" },
+      "description": "Ranked merit entries for a published result sheet."
+    }
+  }
+}

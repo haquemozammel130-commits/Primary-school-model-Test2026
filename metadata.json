@@ -1,0 +1,6 @@
+{
+  "name": "প্রাইমারি স্কুল টেস্ট পরীক্ষা",
+  "description": "প্রাইমারি স্কুল টেস্ট পরীক্ষা - ২০টি মডেল (১০০টি MCQ), অ্যাডমিন প্যানেল, পিডিএফ উত্তরপত্র ও সিএসভি রেজাল্ট শিটসহ কুইজ প্রতিযোগিতা অ্যাপ।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

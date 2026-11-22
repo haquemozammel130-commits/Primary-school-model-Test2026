@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">প্রাইমারি স্কুল টেস্ট পরীক্ষা</string>
+    <string name="sign_in_with_google">Google দিয়ে সাইন ইন করুন</string>
+    <string name="nav_exam">পরীক্ষা</string>
+    <string name="nav_results">ফলাফল</string>
+    <string name="nav_profile">প্রোফাইল</string>
+    <string name="nav_admin">এডমিন</string>
+    <string name="competition_live">প্রতিযোগিতা চলমান</string>
+    <string name="competition_closed">প্রতিযোগিতা বন্ধ</string>
+</resources>

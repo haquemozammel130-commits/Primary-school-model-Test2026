@@ -1,0 +1,249 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email == 'haquemozammel130@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() ||
+             (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // 3. Entity Validators
+    function isValidAdminDoc(data) {
+      return data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+             data.addedBy is string && data.addedBy.size() >= 1 && data.addedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidCompetitionConfig(data) {
+      return data.activeModelNumber is int && data.activeModelNumber >= 1 && data.activeModelNumber <= 20 &&
+             data.competitionOpen is bool &&
+             data.roundNumber is int && data.roundNumber >= 1 && data.roundNumber <= 1000 &&
+             data.examTitle is string && data.examTitle.size() >= 1 && data.examTitle.size() <= 120 &&
+             data.notice is string && data.notice.size() <= 500 &&
+             data.resultsPublished is bool &&
+             data.publishedModelNumber is int && data.publishedModelNumber >= 0 && data.publishedModelNumber <= 20 &&
+             data.publishedRoundNumber is int && data.publishedRoundNumber >= 0 && data.publishedRoundNumber <= 1000 &&
+             data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSubmission(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.participantName is string && data.participantName.size() >= 1 && data.participantName.size() <= 80 &&
+             data.schoolName is string && data.schoolName.size() >= 1 && data.schoolName.size() <= 120 &&
+             data.rollNumber is string && data.rollNumber.size() >= 1 && data.rollNumber.size() <= 40 &&
+             data.modelNumber is int && data.modelNumber >= 1 && data.modelNumber <= 20 &&
+             data.roundNumber is int && data.roundNumber >= 1 && data.roundNumber <= 1000 &&
+             data.answers is list && data.answers.size() == 100 &&
+             data.answers[0] is int && data.answers[99] is int &&
+             data.score is int && data.score >= 0 && data.score <= 100 &&
+             data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 100 &&
+             data.wrongCount is int && data.wrongCount >= 0 && data.wrongCount <= 100 &&
+             data.unansweredCount is int && data.unansweredCount >= 0 && data.unansweredCount <= 100 &&
+             data.correctCount + data.wrongCount + data.unansweredCount == 100 &&
+             data.score == data.correctCount &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 14400 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPublishedSheet(data) {
+      return data.modelNumber is int && data.modelNumber >= 1 && data.modelNumber <= 20 &&
+             data.roundNumber is int && data.roundNumber >= 1 && data.roundNumber <= 1000 &&
+             data.examTitle is string && data.examTitle.size() >= 1 && data.examTitle.size() <= 120 &&
+             data.published is bool &&
+             data.totalParticipants is int && data.totalParticipants >= 0 && data.totalParticipants <= 100000 &&
+             data.highestScore is int && data.highestScore >= 0 && data.highestScore <= 100 &&
+             data.averageScore is number && data.averageScore >= 0.0 && data.averageScore <= 100.0 &&
+             data.publishedBy is string && data.publishedBy.size() >= 1 && data.publishedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPublishedEntry(data, sheetId) {
+      return data.sheetId is string && data.sheetId == sheetId && data.sheetId.size() <= 64 &&
+             data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.rank is int && data.rank >= 1 && data.rank <= 100000 &&
+             data.participantName is string && data.participantName.size() >= 1 && data.participantName.size() <= 80 &&
+             data.schoolName is string && data.schoolName.size() >= 1 && data.schoolName.size() <= 120 &&
+             data.rollNumber is string && data.rollNumber.size() >= 1 && data.rollNumber.size() <= 40 &&
+             data.modelNumber is int && data.modelNumber >= 1 && data.modelNumber <= 20 &&
+             data.roundNumber is int && data.roundNumber >= 1 && data.roundNumber <= 1000 &&
+             data.score is int && data.score >= 0 && data.score <= 100 &&
+             data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 100 &&
+             data.wrongCount is int && data.wrongCount >= 0 && data.wrongCount <= 100 &&
+             data.unansweredCount is int && data.unansweredCount >= 0 && data.unansweredCount <= 100 &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 14400 &&
+             data.published is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    // 4. Admins Collection
+    match /admins/{uid} {
+      allow get: if isSignedIn() && isValidId(uid) && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin() &&
+                       isValidId(uid) &&
+                       isValidAdminDoc(incoming()) &&
+                       incoming().keys().hasAll(['email', 'addedBy', 'createdAt']) &&
+                       incoming().keys().hasOnly(['email', 'addedBy', 'createdAt']);
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(uid) && uid != request.auth.uid;
+    }
+
+    // 5. Global Competition Configuration (document id: "current")
+    match /competition_config/{configId} {
+      allow get: if isSignedIn() && isValidId(configId);
+      allow list: if isSignedIn();
+      allow create: if isAdmin() &&
+                       isValidId(configId) &&
+                       configId == 'current' &&
+                       isValidCompetitionConfig(incoming()) &&
+                       incoming().keys().hasAll([
+                         'activeModelNumber', 'competitionOpen', 'roundNumber', 'examTitle',
+                         'notice', 'resultsPublished', 'publishedModelNumber', 'publishedRoundNumber',
+                         'updatedBy', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'activeModelNumber', 'competitionOpen', 'roundNumber', 'examTitle',
+                         'notice', 'resultsPublished', 'publishedModelNumber', 'publishedRoundNumber',
+                         'updatedBy', 'createdAt', 'updatedAt'
+                       ]);
+      allow update: if isAdmin() &&
+                       isValidId(configId) &&
+                       configId == 'current' &&
+                       isValidCompetitionConfig(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'activeModelNumber', 'competitionOpen', 'roundNumber', 'examTitle',
+                         'notice', 'resultsPublished', 'publishedModelNumber', 'publishedRoundNumber',
+                         'updatedBy', 'updatedAt'
+                       ]);
+      allow delete: if false;
+    }
+
+    // 6. User Quiz Submissions
+    match /submissions/{submissionId} {
+      allow get: if isSignedIn() &&
+                    isValidId(submissionId) &&
+                    (isAdmin() || existing().userId == request.auth.uid);
+      allow list: if isAdmin() ||
+                     (isSignedIn() && existing().userId == request.auth.uid);
+      allow create: if isSignedIn() &&
+                       isValidId(submissionId) &&
+                       isValidSubmission(incoming()) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'participantName', 'schoolName', 'rollNumber',
+                         'modelNumber', 'roundNumber', 'answers', 'score',
+                         'correctCount', 'wrongCount', 'unansweredCount',
+                         'durationSeconds', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'participantName', 'schoolName', 'rollNumber',
+                         'modelNumber', 'roundNumber', 'answers', 'score',
+                         'correctCount', 'wrongCount', 'unansweredCount',
+                         'durationSeconds', 'createdAt', 'updatedAt'
+                       ]) &&
+                       exists(/databases/$(database)/documents/competition_config/current) &&
+                       get(/databases/$(database)/documents/competition_config/current).data.competitionOpen == true &&
+                       get(/databases/$(database)/documents/competition_config/current).data.activeModelNumber == incoming().modelNumber &&
+                       get(/databases/$(database)/documents/competition_config/current).data.roundNumber == incoming().roundNumber;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(submissionId);
+    }
+
+    // 7. Published Result Sheets & Entries Subcollection
+    match /published_sheets/{sheetId} {
+      allow get: if isSignedIn() && isValidId(sheetId) && (isAdmin() || existing().published == true);
+      allow list: if isAdmin() || (isSignedIn() && existing().published == true);
+      allow create: if isAdmin() &&
+                       isValidId(sheetId) &&
+                       isValidPublishedSheet(incoming()) &&
+                       incoming().keys().hasAll([
+                         'modelNumber', 'roundNumber', 'examTitle', 'published',
+                         'totalParticipants', 'highestScore', 'averageScore',
+                         'publishedBy', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'modelNumber', 'roundNumber', 'examTitle', 'published',
+                         'totalParticipants', 'highestScore', 'averageScore',
+                         'publishedBy', 'createdAt', 'updatedAt'
+                       ]);
+      allow update: if isAdmin() &&
+                       isValidId(sheetId) &&
+                       isValidPublishedSheet(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'modelNumber', 'roundNumber', 'examTitle', 'published',
+                         'totalParticipants', 'highestScore', 'averageScore',
+                         'publishedBy', 'updatedAt'
+                       ]);
+      allow delete: if isAdmin() && isValidId(sheetId);
+
+      match /entries/{entryId} {
+        allow get: if isSignedIn() && isValidId(sheetId) && isValidId(entryId) &&
+                      (isAdmin() || existing().published == true);
+        allow list: if isAdmin() || (isSignedIn() && existing().published == true);
+        allow create: if isAdmin() &&
+                         isValidId(sheetId) &&
+                         isValidId(entryId) &&
+                         isValidPublishedEntry(incoming(), sheetId) &&
+                         incoming().keys().hasAll([
+                           'sheetId', 'userId', 'rank', 'participantName', 'schoolName',
+                           'rollNumber', 'modelNumber', 'roundNumber', 'score',
+                           'correctCount', 'wrongCount', 'unansweredCount',
+                           'durationSeconds', 'published', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'sheetId', 'userId', 'rank', 'participantName', 'schoolName',
+                           'rollNumber', 'modelNumber', 'roundNumber', 'score',
+                           'correctCount', 'wrongCount', 'unansweredCount',
+                           'durationSeconds', 'published', 'createdAt'
+                         ]) &&
+                         (exists(/databases/$(database)/documents/published_sheets/$(sheetId)) ||
+                          existsAfter(/databases/$(database)/documents/published_sheets/$(sheetId)));
+        allow update: if isAdmin() &&
+                         isValidId(sheetId) &&
+                         isValidId(entryId) &&
+                         isValidPublishedEntry(incoming(), sheetId) &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'rank', 'participantName', 'schoolName', 'rollNumber',
+                           'score', 'correctCount', 'wrongCount', 'unansweredCount',
+                           'durationSeconds', 'published'
+                         ]);
+        allow delete: if isAdmin() && isValidId(sheetId) && isValidId(entryId);
+      }
+    }
+  }
+}
